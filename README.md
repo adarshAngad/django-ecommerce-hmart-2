@@ -2,6 +2,23 @@
 
 Online shop built with Django: catalog, cart, checkout, Razorpay payments, and admin.
 
+## SDE take-home (Option 1 — Basic e-commerce)
+
+This repository is structured for **Option 1** of the take-home: storefront + REST API + relational data + free-tier deployment. A short submission checklist (demo URL, credentials placeholders, architecture, schema) lives in **`SUBMISSION.md`**.
+
+### REST API (Django REST Framework)
+
+After `pip install -r requirements.txt` and `runserver`, base path: **`/api/`**
+
+| Method | Path | Notes |
+|--------|------|--------|
+| GET | `/api/products/` | Paginated list (public) |
+| GET | `/api/products/{id}/` | Detail (public) |
+| POST, PUT, PATCH, DELETE | `/api/products/`, `/api/products/{id}/` | Staff only |
+| POST | `/api/checkout/simulate/` | Authenticated: creates an order from the **session cart** (no payment); clears the cart |
+
+Use a logged-in browser session against the same origin, or Basic Auth for quick API tests.
+
 ## Local setup
 
 1. Create a virtual environment and install dependencies:
