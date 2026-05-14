@@ -3,6 +3,7 @@ staticfiles/
 *.py[cod]
 .env
 .env.docker
+.env.vps
 .venv/
 venv/
 media/

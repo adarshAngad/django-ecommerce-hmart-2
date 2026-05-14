@@ -1,0 +1,84 @@
+# Self-hosted VPS stack: Postgres + Django + Caddy (automatic HTTPS).
+# You cannot use pro-ac1o.onrender.com on your own machine — Render owns that name.
+# Use a domain or free subdomain (e.g. DuckDNS) and point an A record at your server IP.
+#
+# On the VPS (after DNS points here):
+#   cp .env.vps.example .env.vps   # edit SITE_DOMAIN, SECRET_KEY, POSTGRES_PASSWORD
+#   docker compose -f docker-compose.vps.yml --env-file .env.vps up -d --build
+#
+# Open: https://$SITE_DOMAIN
+
+name: ecommerce-django-vps
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-django}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-django}
+      POSTGRES_DB: ${POSTGRES_DB:-ecommerce}
+    volumes:
+      - pgdata_vps:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-django} -d ${POSTGRES_DB:-ecommerce}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - media_vps:/app/media
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.vps}
+      DEBUG: ${DEBUG:-False}
+      DOCKER: "1"
+      DOCKER_BEHIND_HTTP: "1"
+      ENABLE_PROMETHEUS: ${ENABLE_PROMETHEUS:-0}
+      DOCKER_JSON_LOGS: "1"
+      DATABASE_URL: postgres://${POSTGRES_USER:-django}:${POSTGRES_PASSWORD:-django}@db:5432/${POSTGRES_DB:-ecommerce}
+      ALLOWED_HOSTS: ${SITE_DOMAIN:?Set SITE_DOMAIN in .env.vps},localhost,127.0.0.1,web,caddy
+      CSRF_TRUSTED_ORIGINS: https://${SITE_DOMAIN}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live/')\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 120s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN in .env.vps}
+    command:
+      - caddy
+      - reverse-proxy
+      - --from
+      - ${SITE_DOMAIN}
+      - --to
+      - web:8000
+
+volumes:
+  pgdata_vps:
+  media_vps:

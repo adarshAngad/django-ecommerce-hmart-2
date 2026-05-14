@@ -47,6 +47,10 @@ For a **containerized** stack you can copy to another machine or VPS (Postgres +
 
 Minimal **Kubernetes** manifests live under **`k8s/`** (local clusters such as kind, minikube, or Docker Desktop Kubernetes).
 
+## Your own server and DNS (not Render)
+
+You **cannot** reuse **`pro-ac1o.onrender.com`** on a private VPS (Render owns that hostname). To run your own stack with **your** DNS name (domain or DuckDNS), see **[SELF_HOSTED.md](SELF_HOSTED.md)** and use **`docker-compose.vps.yml`** with **`.env.vps`**.
+
 ## Deploy on Render (public URL)
 
 Your service URL will look like `https://YOUR-SERVICE.onrender.com`. Anyone with the link can open it after a successful deploy.
