@@ -1,71 +1,69 @@
-HOW TO MAKE https://pro-ac1o.onrender.com/ SHOW THE REAL UI (DO IN ORDER)
+HOW TO MAKE https://pro-ac1o.onrender.com/ WORK (YOUR CODE IS ALREADY ON GITHUB)
 
-Right now Render still runs OLD code (see error: product.0 in index.html line 213) and a BROKEN Postgres URL.
-Your fixed project is on your PC but NOT on GitHub for that service — push was denied (403) because Windows Git is logged in as AdarshAg727 while the repo is amaanc986/ECOMMERCE-PROJECT-.
+Your latest code lives here:
+  https://github.com/adarshAngad/django-ecommerce-hmart-2  (branch: main)
 
-================================================================================
-STEP 1 — NEW REPO UNDER YOUR ACCOUNT + PUSH (pick one)
-
-  A) PAT + script (no GitHub CLI login):
-       cd c:\work\Adam\ECOMMERCE-PROJECT-
-       $env:GITHUB_TOKEN = "ghp_CLASSIC_PAT_WITH_repo_SCOPE"
-       .\scripts\Create-OwnGithubRepo-ApiAndPush.ps1 -RepoName "django-ecommerce-hmart"
-
-     Then use in Render: https://github.com/YOUR_USERNAME/django-ecommerce-hmart
-
-  B) GitHub CLI after: gh auth login
-       .\scripts\Create-GitHubRepoAndPush.ps1 -RepoName "django-ecommerce-hmart"
+I cannot log into your Render account from Cursor. You must point the Render service at that repo and deploy once.
 
 ================================================================================
-STEP 2 — RENDER DASHBOARD
+STEP 1 — RENDER DASHBOARD
 ================================================================================
 Open: https://dashboard.render.com
-Open the Web Service whose URL is https://pro-ac1o.onrender.com/
+Click the **Web Service** that shows URL **https://pro-ac1o.onrender.com/** (or the service you want to use for that URL).
 
 ================================================================================
-STEP 3 — REPO + BRANCH
+STEP 2 — CONNECT THIS REPOSITORY (most important)
 ================================================================================
-Settings -> Build & Deploy
-  Repository: the repo you pushed to in Step 1
-  Branch: main
-Save.
+Settings → **Build & Deploy**
+
+  Repository: **adarshAngad / django-ecommerce-hmart-2**
+  Branch: **main**
+
+Click **Save**. Render may start a deploy automatically.
+
+If you do not change this, the site will keep building **old** code from whatever repo was connected before.
 
 ================================================================================
-STEP 4 — DATABASE (FIX THE CRASH)
+STEP 3 — DATABASE (stops Postgres / template crashes)
 ================================================================================
-Environment -> Environment Variables
+Environment → **Environment Variables**
 
-  EITHER delete DATABASE_URL entirely (app will use SQLite and the site will load), OR
-  paste the FULL "Internal Database URL" from your Render PostgreSQL
-  (hostname MUST look like something.postgres.render.com — NOT ending at ...-a with no domain).
+  EITHER **delete** `DATABASE_URL` (app uses SQLite; site should load), OR
+  set `DATABASE_URL` to the **full Internal Database URL** from your Render Postgres
+  (host must contain a dot, e.g. `....postgres.render.com` — not a truncated `...@dpg-...-a` only).
 
-Optional but safe if you see DisallowedHost:
+Recommended (avoids DisallowedHost / CSRF on HTTPS):
+
   ALLOWED_HOSTS = pro-ac1o.onrender.com
   CSRF_TRUSTED_ORIGINS = https://pro-ac1o.onrender.com
 
 Save.
 
 ================================================================================
-STEP 5 — BUILD + START
+STEP 4 — BUILD + START COMMANDS
 ================================================================================
-Build Command:
-  chmod +x build.sh && ./build.sh
+Settings → **Build & Deploy** (or **Start**)
 
-Start Command:
-  gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT
+  Build Command:
+    chmod +x build.sh && ./build.sh
+
+  Start Command:
+    gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT
 
 Save.
 
 ================================================================================
-STEP 6 — DEPLOY
+STEP 5 — DEPLOY
 ================================================================================
-Manual Deploy -> Clear build cache & deploy (or Deploy latest commit).
-Wait until the deploy is Live. First open after idle can take ~30–60 seconds (free tier).
+**Manual Deploy** → **Clear build cache & deploy** (or **Deploy latest commit**).
 
-Then click: https://pro-ac1o.onrender.com/
+Wait until status is **Live** (first request after idle can take ~30–60 seconds on free tier).
+
+Open: https://pro-ac1o.onrender.com/
 
 ================================================================================
 AFTER IT WORKS
 ================================================================================
-Create admin if needed (Render Shell):
+Render → **Shell** (or local):
+
   python manage.py createsuperuser
