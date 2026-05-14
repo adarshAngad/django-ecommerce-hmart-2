@@ -4,26 +4,17 @@ Right now Render still runs OLD code (see error: product.0 in index.html line 21
 Your fixed project is on your PC but NOT on GitHub for that service — push was denied (403) because Windows Git is logged in as AdarshAg727 while the repo is amaanc986/ECOMMERCE-PROJECT-.
 
 ================================================================================
-STEP 1 — GET YOUR LATEST CODE ONTO GITHUB (REQUIRED)
-================================================================================
-Open PowerShell in the project folder:
+STEP 1 — NEW REPO UNDER YOUR ACCOUNT + PUSH (pick one)
 
-  cd c:\work\Adam\ECOMMERCE-PROJECT-
+  A) PAT + script (no GitHub CLI login):
+       cd c:\work\Adam\ECOMMERCE-PROJECT-
+       $env:GITHUB_TOKEN = "ghp_CLASSIC_PAT_WITH_repo_SCOPE"
+       .\scripts\Create-OwnGithubRepo-ApiAndPush.ps1 -RepoName "django-ecommerce-hmart"
 
-Pick ONE:
+     Then use in Render: https://github.com/YOUR_USERNAME/django-ecommerce-hmart
 
-  A) Owner account (amaanc986) adds AdarshAg727 as collaborator on the repo, then:
-       git push origin main
-
-  B) Use a Personal Access Token for an account that CAN push to that repo:
-       $env:GITHUB_TOKEN = 'ghp_PASTE_CLASSIC_PAT_WITH_repo_SCOPE'
-       .\scripts\Push-WithGitHubToken.ps1
-
-  C) Point git at YOUR repo and push there, then in Render (Step 3) connect YOUR repo instead:
-       git remote set-url origin https://github.com/YOUR_USER/YOUR_REPO.git
-       git push -u origin main
-
-Until Step 1 succeeds, Render will NEVER show the new UI.
+  B) GitHub CLI after: gh auth login
+       .\scripts\Create-GitHubRepoAndPush.ps1 -RepoName "django-ecommerce-hmart"
 
 ================================================================================
 STEP 2 — RENDER DASHBOARD

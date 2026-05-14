@@ -54,8 +54,14 @@ if (-not (Test-Path ".git")) {
     Write-Error "No .git folder in $root"
 }
 
-# Replace origin so push targets the new repo under your account
-git remote remove origin 2>$null
+# Point new repo at origin; keep previous GitHub remote as upstream when possible.
+$remotes = @(git remote)
+if ($remotes -contains 'origin' -and -not ($remotes -contains 'upstream')) {
+    git remote rename origin upstream
+}
+elseif ($remotes -contains 'origin' -and $remotes -contains 'upstream') {
+    Write-Error "Remotes already have both 'origin' and 'upstream'. Remove or rename one, or use .\scripts\Create-OwnGithubRepo-ApiAndPush.ps1 instead."
+}
 
 & $GhPath repo create $RepoName `
     --public `

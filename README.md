@@ -82,8 +82,11 @@ SQLite on a web service is fine for demos; use Render Postgres for data you need
 
 **Same hostname vs new service:** read `RENDER_SAME_HOSTNAME.md`.
 
-**New GitHub repo + push:** install GitHub CLI (`winget install GitHub.cli`), run `gh auth login` once, then from the repo root:
+**New GitHub repo under your account (no `gh login`):** create a [classic PAT](https://github.com/settings/tokens) with **repo** scope, then from the repo root:
 
-`.\scripts\Create-GitHubRepoAndPush.ps1 -RepoName "django-hmart-store"`
+```powershell
+$env:GITHUB_TOKEN = "ghp_xxxxxxxx"
+.\scripts\Create-OwnGithubRepo-ApiAndPush.ps1 -RepoName "django-ecommerce-hmart"
+```
 
-Or set `$env:GITHUB_TOKEN` to a [classic PAT](https://github.com/settings/tokens) with **repo** scope and run the same script (no browser).
+That creates `https://github.com/<you>/django-ecommerce-hmart`, saves the old `origin` as `upstream`, and pushes `main`. Connect **that** repo in Render.
