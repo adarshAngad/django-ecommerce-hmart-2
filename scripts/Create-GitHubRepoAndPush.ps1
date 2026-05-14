@@ -29,8 +29,12 @@ if (-not (Test-Path $GhPath)) {
     Write-Error "GitHub CLI not found at '$GhPath'. Install: winget install GitHub.cli"
 }
 
-& $GhPath auth status 2>$null
-if ($LASTEXITCODE -ne 0) {
+$ErrorActionPreference = "SilentlyContinue"
+& $GhPath auth status 2>$null | Out-Null
+$authOk = ($LASTEXITCODE -eq 0)
+$ErrorActionPreference = "Stop"
+
+if (-not $authOk) {
     if ($env:GITHUB_TOKEN) {
         $env:GITHUB_TOKEN | & $GhPath auth login --with-token 2>$null
     }
@@ -58,7 +62,8 @@ git remote remove origin 2>$null
     --source=. `
     --remote=origin `
     --push `
-    --description "Django ecommerce (Hmart) – Render-ready"
+    --description "Django ecommerce Hmart Render-ready"
 
-Write-Host "Done. Repo: https://github.com/$( & $GhPath api user --jq .login )/$RepoName" -ForegroundColor Green
+$login = & $GhPath api user --jq .login
+Write-Host "Done. Repo: https://github.com/$login/$RepoName" -ForegroundColor Green
 Write-Host 'Next: Render → New Web Service → connect this repo; start: gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT' -ForegroundColor Yellow
