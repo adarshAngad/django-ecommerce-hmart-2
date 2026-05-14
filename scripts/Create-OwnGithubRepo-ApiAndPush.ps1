@@ -123,9 +123,24 @@ else {
 $branch = (git branch --show-current).Trim()
 if (-not $branch) { $branch = 'main' }
 
-$pushUrl = "https://x-access-token:$token@github.com/$GitHubUser/$RepoName.git"
+# URL-encode token so special characters do not break the URL userinfo.
+$encToken = [System.Uri]::EscapeDataString($token)
+$pushUrl = "https://x-access-token:${encToken}@github.com/$GitHubUser/$RepoName.git"
 try {
-    git push $pushUrl "HEAD:refs/heads/$branch"
+    # Windows Git Credential Manager often overrides embedded tokens; disable helpers for this push.
+    git -c credential.helper= push $pushUrl "HEAD:refs/heads/$branch"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ''
+        Write-Host 'git push failed.' -ForegroundColor Red
+        Write-Host 'Common fixes:' -ForegroundColor Yellow
+        Write-Host '  1) Create a new CLASSIC PAT with at least **public_repo** (or full **repo**) scope.' -ForegroundColor Yellow
+        Write-Host '  2) Clear saved GitHub credentials (they override the token in the URL):' -ForegroundColor Yellow
+        Write-Host '     Win+R -> control /name Microsoft.CredentialManager -> Windows Credentials' -ForegroundColor Cyan
+        Write-Host '     Remove any github.com entries, then run this script again.' -ForegroundColor Cyan
+        Write-Host '  3) Confirm the empty repo exists under YOUR user:' -ForegroundColor Yellow
+        Write-Host "     https://github.com/$GitHubUser/$RepoName" -ForegroundColor Cyan
+        exit 1
+    }
 }
 finally {
     $pushUrl = $null
