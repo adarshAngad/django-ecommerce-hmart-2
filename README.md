@@ -52,3 +52,5 @@ Also set Razorpay / email variables if you use those features (see earlier secti
 - First request after idle may take ~30–60 seconds on the free tier (cold start).
 
 SQLite on a web service is fine for demos; use Render Postgres for data you need to keep across deploys.
+
+**Deploying to `https://pro-ac1o.onrender.com/`:** follow the checklist in `DEPLOY_RENDER_PRO_AC1O.md` (connect repo, fix `DATABASE_URL`, start command with `$PORT`, redeploy).
