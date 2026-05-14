@@ -2,6 +2,26 @@
 
 Your Render service is still running **old code** (error at `index.html` line 213 with `{{ product.0 }}`) and/or a **broken Postgres URL**. Fix both in the Render dashboard and redeploy.
 
+## 0. Push from this PC when `git push` returns 403
+
+If `git push origin main` says **Permission denied** (for example your Git credential is **AdarshAg727** but `origin` is **amaanc986/...**), pick one:
+
+1. **Add your GitHub user as a collaborator** on `amaanc986/ECOMMERCE-PROJECT-` (repo Settings → Collaborators), then push again with `git push origin main`, or  
+2. **Push with a PAT** for an account that owns or can push to that repo. In PowerShell from the repo root:
+
+   ```powershell
+   .\scripts\Push-WithGitHubToken.ps1
+   ```
+
+   Create a [classic PAT](https://github.com/settings/tokens) with **repo** scope. Set it only for the session (it is not stored in the repo):
+
+   ```powershell
+   $env:GITHUB_TOKEN = 'ghp_xxxxxxxx'
+   .\scripts\Push-WithGitHubToken.ps1
+   ```
+
+3. **Change `origin`** to a repo under your user (create an empty public repo first), then push and point Render at that repo instead.
+
 ## 1. Point the service at code that includes the fixes
 
 In Render: **Web Service `pro-ac1o`** (or whatever it is named) → **Settings** → **Build & Deploy**:
