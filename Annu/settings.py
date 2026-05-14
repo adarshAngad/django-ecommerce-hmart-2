@@ -37,8 +37,11 @@ ENABLE_PROMETHEUS = os.environ.get('ENABLE_PROMETHEUS', '').lower() in ('1', 'tr
 
 _is_render = bool(os.environ.get('RENDER'))
 _is_docker = os.environ.get('DOCKER', '').lower() in ('1', 'true', 'yes')
+_public_tunnel_demo = os.environ.get('PUBLIC_TUNNEL_DEMO', '').lower() in ('1', 'true', 'yes')
 _default_debug = 'False' if _is_render else 'True'
 DEBUG = os.environ.get('DEBUG', _default_debug).lower() in ('true', '1', 'yes')
+if _public_tunnel_demo:
+    DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -56,8 +59,15 @@ _extra_hosts = os.environ.get('ALLOWED_HOSTS', '')
 if _extra_hosts:
     ALLOWED_HOSTS.extend(h.strip() for h in _extra_hosts.split(',') if h.strip())
 
-
-# Application definition
+if _public_tunnel_demo:
+    print(
+        'PUBLIC_TUNNEL_DEMO=1: using ALLOWED_HOSTS=* and HTTPS proxy headers for Cloudflare TryCloudflare. '
+        'Demo only — do not expose real data.',
+        file=sys.stderr,
+    )
+    ALLOWED_HOSTS = ['*']
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 INSTALLED_APPS = []
 if ENABLE_PROMETHEUS:
