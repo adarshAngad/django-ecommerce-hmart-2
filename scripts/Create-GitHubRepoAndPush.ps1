@@ -61,4 +61,4 @@ git remote remove origin 2>$null
     --description "Django ecommerce (Hmart) – Render-ready"
 
 Write-Host "Done. Repo: https://github.com/$( & $GhPath api user --jq .login )/$RepoName" -ForegroundColor Green
-Write-Host "Next: Render → New Web Service → connect this repo; start: gunicorn Annu.wsgi:application --bind 0.0.0.0:`$PORT" -ForegroundColor Yellow
+Write-Host 'Next: Render → New Web Service → connect this repo; start: gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT' -ForegroundColor Yellow
