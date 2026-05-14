@@ -51,6 +51,24 @@ Minimal **Kubernetes** manifests live under **`k8s/`** (local clusters such as k
 
 You **cannot** reuse **`pro-ac1o.onrender.com`** on a private VPS (Render owns that hostname). To run your own stack with **your** DNS name (domain or DuckDNS), see **[SELF_HOSTED.md](SELF_HOSTED.md)** and use **`docker-compose.vps.yml`** with **`.env.vps`**.
 
+## Free cloud — Render (open from any phone or PC)
+
+You do **not** install Python on other people’s devices. Render runs the app; they only open an `https://….onrender.com` link.
+
+### New deploy from this repo (recommended)
+
+1. Sign up at **[render.com](https://render.com)** with **GitHub**.
+2. **New +** → **Blueprint** → connect **`adarshAngad/django-ecommerce-hmart-2`** (branch **`main`**).
+3. Render reads **`render.yaml`**: it creates a **free Web Service** + **free PostgreSQL** (Oregon) and wires **`DATABASE_URL`** automatically.
+4. Wait until the first deploy is **Live**. Open the **URL** shown on the service (e.g. `https://django-ecommerce.onrender.com` — the name comes from `render.yaml`).
+5. Optional: **GitHub → Settings → Secrets → Actions** add **`RENDER_DEPLOY_HOOK_URL`** from Render (**Manual Deploy → Deploy hook**). Then every **`git push`** to **`main`** can trigger **[`.github/workflows/render-deploy.yml`](.github/workflows/render-deploy.yml)**.
+
+Free Postgres on Render is for trials and **expires after 30 days** unless you upgrade ([changelog](https://render.com/changelog/free-postgresql-instances-now-expire-after-30-days-previously-90-days)).
+
+### Already have a service (e.g. `pro-ac1o`)
+
+Use **`PRO_AC1O_OPEN_THIS_URL.txt`**: connect the same GitHub repo, fix env vars, **Manual Deploy**.
+
 ## Deploy on Render (public URL)
 
 Your service URL will look like `https://YOUR-SERVICE.onrender.com`. Anyone with the link can open it after a successful deploy.
