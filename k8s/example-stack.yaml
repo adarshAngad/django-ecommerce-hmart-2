@@ -1,0 +1,132 @@
+# Minimal demo stack — not production-hardened.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+stringData:
+  password: django
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: django
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: ecommerce
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: pgdata
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-web
+  labels:
+    app: ecommerce-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-web
+  template:
+    metadata:
+      labels:
+        app: ecommerce-web
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - "for i in $(seq 1 90); do nc -z postgres 5432 && exit 0; sleep 2; done; exit 1"
+      containers:
+        - name: web
+          image: ecommerce-django:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DOCKER
+              value: "1"
+            - name: DOCKER_BEHIND_HTTP
+              value: "1"
+            - name: DEBUG
+              value: "True"
+            - name: ENABLE_PROMETHEUS
+              value: "1"
+            - name: DOCKER_JSON_LOGS
+              value: "1"
+            - name: SECRET_KEY
+              value: k8s-demo-insecure-key-replace-me
+            - name: DATABASE_URL
+              value: postgres://django:django@postgres:5432/ecommerce
+            - name: ALLOWED_HOSTS
+              value: localhost,127.0.0.1,ecommerce-web
+            - name: CSRF_TRUSTED_ORIGINS
+              value: http://localhost:8080,http://127.0.0.1:8080
+          livenessProbe:
+            httpGet:
+              path: /health/live/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health/ready/
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-web
+spec:
+  type: ClusterIP
+  selector:
+    app: ecommerce-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000

@@ -33,7 +33,10 @@ SECRET_KEY = os.environ.get(
     'django-insecure-l#2q(95krxuw2&xs^kyisi^trp3kw80$dtr_13nv43ew%=hq+z',
 )
 
+ENABLE_PROMETHEUS = os.environ.get('ENABLE_PROMETHEUS', '').lower() in ('1', 'true', 'yes')
+
 _is_render = bool(os.environ.get('RENDER'))
+_is_docker = os.environ.get('DOCKER', '').lower() in ('1', 'true', 'yes')
 _default_debug = 'False' if _is_render else 'True'
 DEBUG = os.environ.get('DEBUG', _default_debug).lower() in ('true', '1', 'yes')
 
@@ -44,6 +47,11 @@ if _render_host:
 if _is_render:
     # Correct absolute URLs and host validation behind Render's proxy
     USE_X_FORWARDED_HOST = True
+if _is_docker:
+    USE_X_FORWARDED_HOST = True
+    for _h in ('web', 'nginx'):
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
 _extra_hosts = os.environ.get('ALLOWED_HOSTS', '')
 if _extra_hosts:
     ALLOWED_HOSTS.extend(h.strip() for h in _extra_hosts.split(',') if h.strip())
@@ -51,7 +59,10 @@ if _extra_hosts:
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = []
+if ENABLE_PROMETHEUS:
+    INSTALLED_APPS.append('django_prometheus')
+INSTALLED_APPS += [
     'adminlte3',
     'adminlte3_theme',
     'django.contrib.admin',
@@ -69,7 +80,7 @@ INSTALLED_APPS = [
 
 CART_SESSION_ID = 'cart'
 
-MIDDLEWARE = [
+_BASE_MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,6 +90,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+MIDDLEWARE = (
+    ['django_prometheus.middleware.PrometheusBeforeMiddleware']
+    + _BASE_MIDDLEWARE
+    + ['django_prometheus.middleware.PrometheusAfterMiddleware']
+    if ENABLE_PROMETHEUS
+    else _BASE_MIDDLEWARE
+)
 
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_fZDP5mwWKWM2ZE')
 RAZORPAY_KEY_SECRATE = os.environ.get('RAZORPAY_KEY_SECRET', 'hv2ZZW9luTRGE91vxQZdyPEV')
@@ -116,9 +135,11 @@ def _postgres_url_looks_valid(url: str) -> bool:
         if parsed.scheme not in ('postgres', 'postgresql'):
             return True
         host = parsed.hostname or ''
-        # Real Render Postgres hosts look like dpg-xxxxx-a.REGION-postgres.render.com
-        if not host or '.' not in host:
+        if not host:
             return False
+        # Docker Compose uses single-label service names (e.g. db).
+        if '.' not in host:
+            return _is_docker
         return True
     except Exception:
         return False
@@ -127,7 +148,7 @@ def _postgres_url_looks_valid(url: str) -> bool:
 _raw_db_url = (os.environ.get('DATABASE_URL') or '').strip()
 _use_postgres = bool(_raw_db_url) and _postgres_url_looks_valid(_raw_db_url)
 
-if _raw_db_url and not _use_postgres:
+if _raw_db_url and not _use_postgres and not _is_docker:
     print(
         'WARNING: DATABASE_URL is set but invalid or truncated (hostname must include a domain). '
         'Falling back to SQLite. Fix DATABASE_URL in the Render dashboard to use Postgres.',
@@ -237,9 +258,55 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# HTTP behind Nginx in Docker (no TLS) — avoid secure-only cookies breaking login/forms.
+if _is_docker and os.environ.get('DOCKER_BEHIND_HTTP', '1').lower() in ('1', 'true', 'yes'):
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+
 _csrf_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()]
 if _render_host:
     for _origin in (f'https://{_render_host}', f'http://{_render_host}'):
         if _origin not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(_origin)
+
+if _is_docker:
+    for _origin in (
+        'http://localhost',
+        'http://127.0.0.1',
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
+        'http://nginx',
+        'http://web:8000',
+    ):
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
+
+if os.environ.get('DOCKER_JSON_LOGS', '').lower() in ('1', 'true', 'yes'):
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'jsonish': {
+                'format': '{"level":"%(levelname)s","time":"%(asctime)s","logger":"%(name)s","message":"%(message)s"}',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'jsonish',
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': os.environ.get('LOG_LEVEL', 'INFO'),
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': os.environ.get('LOG_LEVEL', 'INFO'),
+                'propagate': False,
+            },
+        },
+    }

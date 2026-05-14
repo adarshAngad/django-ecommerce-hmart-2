@@ -31,7 +31,7 @@ Timeline: completed within the stated 7-day window.
 | REST API | Django REST Framework: product CRUD; `POST /api/checkout/simulate/` records an order from the session cart without a payment gateway. |
 | Database | Relational schema in `app` models: products, users (Django auth), orders, order line items, plus catalog FKs (category, brand, etc.). |
 | Validation / errors | DRF serializers and view validation; Django forms on the HTML side. |
-| Deployment | Render-friendly settings (`Procfile`, `render.yaml`, `build.sh`, WhiteNoise, optional `DATABASE_URL`). Frontend and backend are the **same** Django app (acceptable for Option 1); static assets served by the app. |
+| Deployment | Render-friendly settings (`Procfile`, `render.yaml`, `build.sh`, WhiteNoise, optional `DATABASE_URL`). **Docker:** multi-service `docker-compose.yml` (Postgres, Django, Nginx) + optional Prometheus/Grafana profile — see **`DOCKER.md`**. Minimal **Kubernetes** sample under **`k8s/`**. |
 
 ## Architecture overview
 

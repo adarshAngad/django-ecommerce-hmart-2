@@ -14,15 +14,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
+
+from Annu import health as health_views
 from django.views.generic import RedirectView
 from django.views.static import serve
 from app.views import *
-from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('health/live/', health_views.health_live, name='health_live'),
+    path('health/ready/', health_views.health_ready, name='health_ready'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('logout/', RedirectView.as_view(url='/admin/logout/')),
@@ -57,9 +61,12 @@ urlpatterns = [
     path('404page',BLANK,name='404'),
 
   
-
+  
 
 ]
+
+if getattr(settings, 'ENABLE_PROMETHEUS', False):
+    urlpatterns.insert(0, path('', include('django_prometheus.urls')))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

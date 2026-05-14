@@ -37,3 +37,15 @@ class ProductAPITests(TestCase):
         # image required — skip full create without file; assert permission path
         r = self.client.post('/api/products/', {}, format='json')
         self.assertIn(r.status_code, (400, 415))
+
+
+class HealthEndpointTests(TestCase):
+    def test_live(self):
+        r = self.client.get('/health/live/')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json().get('status'), 'ok')
+
+    def test_ready(self):
+        r = self.client.get('/health/ready/')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json().get('status'), 'ready')

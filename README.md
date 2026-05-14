@@ -39,6 +39,14 @@ Use a logged-in browser session against the same origin, or Basic Auth for quick
 
 5. Open `http://127.0.0.1:8000/`
 
+## Docker Compose and Kubernetes (multi-service, observability)
+
+For a **containerized** stack you can copy to another machine or VPS (Postgres + Django + Nginx; optional Prometheus + Grafana), see **[DOCKER.md](DOCKER.md)**. Quick start:
+
+`docker compose up -d --build` then open **http://localhost:8080**. Optional metrics stack: `docker compose --profile observability up -d --build`.
+
+Minimal **Kubernetes** manifests live under **`k8s/`** (local clusters such as kind, minikube, or Docker Desktop Kubernetes).
+
 ## Deploy on Render (public URL)
 
 Your service URL will look like `https://YOUR-SERVICE.onrender.com`. Anyone with the link can open it after a successful deploy.
