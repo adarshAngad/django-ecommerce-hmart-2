@@ -1,0 +1,40 @@
+HOW TO MAKE https://pro-ac1o.onrender.com/ OPEN (YOU MUST DO THESE IN THE BROWSER)
+
+The site is still broken on Render because OLD code is deployed and DATABASE_URL is wrong.
+I cannot log into your Render or GitHub account from here. Do this in order:
+
+STEP 1 - PUT FIXED CODE ON GITHUB
+  Open PowerShell:
+    cd c:\work\Adam\ECOMMERCE-PROJECT-
+    gh auth login
+    git push origin main
+  If push fails, fix GitHub login or use:
+    .\scripts\Create-GitHubRepoAndPush.ps1 -RepoName "hmart-fixed"
+  Then in Render (step 3) connect THAT new repo instead.
+
+STEP 2 - OPEN RENDER
+  https://dashboard.render.com
+  Click your Web Service that shows URL pro-ac1o.onrender.com
+
+STEP 3 - CONNECT THIS REPO
+  Settings -> Build & Deploy -> Repository
+  Pick the GitHub repo and branch that has your LATEST code (with hero_slides fix).
+  Save.
+
+STEP 4 - FIX DATABASE (IMPORTANT)
+  Environment -> Environment Variables
+  Find DATABASE_URL -> DELETE it (trash icon) OR replace with FULL Internal URL from your Render Postgres (host must contain a dot, like ....postgres.render.com)
+  Save.
+
+STEP 5 - START COMMAND
+  Settings -> Start Command:
+    gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT
+  Build Command:
+    chmod +x build.sh && ./build.sh
+  Save.
+
+STEP 6 - DEPLOY
+  Manual Deploy -> Clear build cache & deploy (or Deploy latest commit)
+  Wait until build is green. Open https://pro-ac1o.onrender.com/ again (wait up to 60 sec on free tier).
+
+If you do only step 4 and not step 1, the home page can STILL crash (old template). You need NEW code from GitHub on Render.
