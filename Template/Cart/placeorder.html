@@ -98,14 +98,14 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         var options = {
-            "key": "rzp_test_fZDP5mwWKWM2ZE",
-            "amount": "50000",
+            "key": "{{ RAZORPAY_KEY_ID }}",
+            "amount": "{{ order_amount_paise }}",
             "currency": "INR",
             "name": "Hmart",
             "description": "Test Transaction",
             "image": "https://example.com/your_logo",
             "order_id": "{{order_id}}",
-            "callback_url": "{% url 'success' %}",  // Corrected the callback_url
+            "callback_url": "{{ request.scheme }}://{{ request.get_host }}{% url 'success' %}",
             "prefill": {
                 "name": "{{ request.user.username }}",  // Assuming you have a logged-in user
                 "email": "{{ request.user.email }}", 

@@ -127,7 +127,7 @@ class OrderItems(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='Product_images/Order_img')
+    image = models.CharField(max_length=512)
     quantity = models.CharField(max_length=20)
     price = models.CharField(max_length=50)
     total = models.CharField(max_length=1000)

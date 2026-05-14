@@ -16,9 +16,8 @@
                                 <div class="col-lg-6 col-md-6">
                                     <div class="billing-info mb-4">
                                         <label>First Name</label>
-                                        <input type="text"   name="firstname"  />
-                                        <input type="text"  hidden="" name="order_id" value="{{order_id}}" />
-                                        <input type="text"  hidden="" name="payment" value="{{payment}}" />
+                                        <input type="text" name="firstname" />
+                                        <input type="hidden" name="order_id" value="{{ order_id }}" />
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-md-6">
@@ -44,7 +43,7 @@
                                     <div class="billing-info mb-4">
                                         <label>Street Address</label>
                                         <input name="address" class="billing-address" placeholder="House number and street name" type="text" />
-                                        <input name="address" placeholder="Apartment, suite, unit etc." type="text" />
+                                        <input name="address2" placeholder="Apartment, suite, unit etc." type="text" />
                                     </div>
                                 </div>
                                 <div class="col-lg-12">
@@ -116,7 +115,7 @@
                                     <div class="your-order-total">
                                         <ul>
                                             <li class="order-total">Total</li>
-                                            <li><input  style="border: none" type="" name="amount" value="${{cart_total_amount}}"></li>
+                                            <li><input style="border: none" type="text" name="amount" value="{{ cart_total_amount }}"></li>
                                         </ul>
                                     </div>
                                 </div>

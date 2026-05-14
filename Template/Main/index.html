@@ -204,54 +204,55 @@
             <div class="hero-slider swiper-container slider-nav-style-1 slider-dot-style-1">
                 <!-- Hero slider Active -->
                 <div class="swiper-wrapper">
-                    <!-- Single slider item -->
+                    {% for hero in hero_slides %}
                     <div class="hero-slide-item slider-height-2 swiper-slide bg-color1" data-bg-image="{% static 'assets/images/hero/bg/hero-bg-2-1.webp' %}">
                         <div class="container h-100">
                             <div class="row h-100 flex-row-reverse">
                                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 align-self-center sm-center-view">
                                     <div class="hero-slide-content hero-slide-content-2 slider-animated-1">
-                                        <h2 class="title-1">{{product.0.name|truncatechars:40}}</h2>
+                                        <h2 class="title-1">{{ hero.name|truncatechars:40 }}</h2>
                                         <span class="price">
                                             <span class="mini-title">Only</span>
-                                        <span class="amount">₹{{product.0.price}}</span>
+                                        <span class="amount">₹{{ hero.price }}</span>
                                         </span>
-                                        <a href="{% url 'product' %}" class="btn btn-primary text-capitalize">Shop All Devices</a>
+                                        <a href="{% url 'product_details' hero.id %}" class="btn btn-primary text-capitalize">Shop All Devices</a>
                                     </div>
                                 </div>
                                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 d-flex justify-content-center position-relative align-items-center">
                                     <div class="show-case">
                                         <div class="hero-slide-image slider-2">
-                                            <img style="mix-blend-mode: color-burn;" src="{{ product.0.image.url }}" alt="" />
+                                            <img style="mix-blend-mode: color-burn;" src="{{ hero.image.url }}" alt="" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Single slider item -->
+                    {% empty %}
                     <div class="hero-slide-item slider-height-2 swiper-slide bg-color1" data-bg-image="{% static 'assets/images/hero/bg/hero-bg-2-1.webp' %}">
                         <div class="container h-100">
                             <div class="row h-100 flex-row-reverse">
                                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 align-self-center sm-center-view">
                                     <div class="hero-slide-content hero-slide-content-2 slider-animated-1">
-                                        <h2 class="title-1">{{product.1.name|truncatechars:40}}</h2>
+                                        <h2 class="title-1">Welcome to our store</h2>
                                         <span class="price">
-                                            <span class="mini-title">Only</span>
-                                        <span class="amount">₹{{product.1.price}}</span>
+                                            <span class="mini-title">Browse our</span>
+                                        <span class="amount">catalog</span>
                                         </span>
-                                        <a href="{% url 'product' %}" class="btn btn-primary text-capitalize">Shop All Devices</a>
+                                        <a href="{% url 'product' %}" class="btn btn-primary text-capitalize">Shop now</a>
                                     </div>
                                 </div>
                                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 d-flex justify-content-center position-relative align-items-center">
                                     <div class="show-case">
                                         <div class="hero-slide-image slider-2">
-                                            <img style="mix-blend-mode: color-burn;" src="{{ product.1.image.url }}" alt="" />
+                                            <img style="mix-blend-mode: color-burn;" src="{% static 'assets/images/hero/bg/hero-bg-2-1.webp' %}" alt="" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
                 <!-- Add Pagination -->
                 <div class="swiper-pagination swiper-pagination-white"></div>

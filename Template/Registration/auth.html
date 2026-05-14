@@ -2,6 +2,14 @@
 
 {% block content %}
 
+{% if messages %}
+<div class="container pt-4">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}info{% endif %}" role="alert">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- login area start -->
 <div class="login-register-area pt-100px pb-100px">
     <div class="container">

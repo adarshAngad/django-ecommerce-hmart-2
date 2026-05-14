@@ -1,75 +1,34 @@
-<<<<<<< HEAD
 # Django eCommerce Website
 
-## 🛍️ Introduction
-Welcome to the **Django eCommerce Website**! This project is a fully functional online shopping platform built with Django. It allows users to browse products, add them to their cart, and complete purchases seamlessly.
+Online shop built with Django: catalog, cart, checkout, Razorpay payments, and admin.
 
-## 🚀 Features
-- 🔹 User authentication (Signup/Login/Logout)
-- 🔹 Product catalog with categories and search functionality
-- 🔹 Shopping cart and checkout process
-- 🔹 Order management system
-- 🔹 Payment gateway integration (PayPal/Stripe)
-- 🔹 Admin dashboard for managing products, orders, and users
-- 🔹 Responsive UI for mobile and desktop users
-- 🔹 Review and rating system
-- 🔹 Wishlist functionality
+## Local setup
 
-## 🛠️ Tech Stack
-- **Backend:** Django, Django REST Framework
-- **Frontend:** HTML, CSS, JavaScript, Bootstrap
-- **Database:**  MySQL / SQLite
-- **Payment Integration:** PayPal / Stripe / Razorpay
+1. Create a virtual environment and install dependencies:
 
-## 📌 Installation Guide
+   `pip install -r requirements.txt`
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Himanshu1529/Django-Ecommerce-Application.git
-   cd Django-Ecommerce-Application
-   ```
-2. Create a virtual environment and activate it:
-   ```bash
-   python -m venv env
-   source env/bin/activate   # On Windows: env\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Apply migrations:
-   ```bash
-   python manage.py migrate
-   ```
-5. Create a superuser:
-   ```bash
-   python manage.py createsuperuser
-   ```
-6. Run the development server:
-   ```bash
-   python manage.py runserver
-   ```
-7. Open in your browser:
-   ```
-   http://127.0.0.1:8000/
-   ```
+2. Run migrations:
 
-## 📷 Screenshots
-![App Screenshot](https://github.com/Himanshu1529/Django-Ecommerce-Application/blob/main/Screenshot%202025-03-21%20112513.png)
-![App Screenshot](https://github.com/Himanshu1529/Django-Ecommerce-Application/blob/main/Home.png)
-![App Screenshot](https://github.com/Himanshu1529/Django-Ecommerce-Application/blob/main/Screenshot%202025-03-21%20112421.png)
-![App Screenshot](https://github.com/Himanshu1529/Django-Ecommerce-Application/blob/main/Screenshot%202025-03-21%20112446.png)
+   `python manage.py migrate`
 
-## 🤝 Contributing
-Contributions are welcome! Feel free to fork this repository, make changes, and submit a pull request.
+3. Create an admin user:
 
-## 📜 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+   `python manage.py createsuperuser`
 
-## 📞 Contact
-For any queries or support, reach out at:
-📧 Email: amaanc986@gmail.com  
-Happy Coding! 🎉
-=======
-# Django-Ecommerce-Application-main
->>>>>>> 54a12ac586968113180c802fb56c12218689f2ee
+4. Run the server:
+
+   `python manage.py runserver`
+
+5. Open `http://127.0.0.1:8000/`
+
+## Deploy on Render
+
+- **Build command:** `chmod +x build.sh && ./build.sh`
+- **Start command:** `gunicorn Annu.wsgi:application`
+- Set **`SECRET_KEY`**, **`DEBUG=False`**, and optional **`DATABASE_URL`** (Render PostgreSQL).
+- **PostgreSQL:** In the Render dashboard, copy the **Internal Database URL** in full (it must end with `.render.com` or similar). If you paste a truncated value, you will see errors like `could not translate host name "dpg-..."`.
+- If Postgres fails SSL on a non-Render host, set **`DATABASE_SSL_REQUIRE=False`**.
+- Optional: **`RAZORPAY_KEY_ID`**, **`RAZORPAY_KEY_SECRET`**, **`EMAIL_HOST_USER`**, **`EMAIL_HOST_PASSWORD`** for email.
+
+SQLite works for quick tests; use Render Postgres for data that must survive redeploys.
