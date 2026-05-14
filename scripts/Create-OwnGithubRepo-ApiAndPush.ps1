@@ -13,6 +13,12 @@
        .\scripts\Create-OwnGithubRepo-ApiAndPush.ps1 -RepoName "django-ecommerce-hmart"
 
   If you omit -GitHubUser, the script resolves the owner from the API (the account that owns the PAT).
+
+  If API create returns 404, your token usually cannot create repos. Fix:
+    - Classic PAT: enable the **repo** scope (https://github.com/settings/tokens — "Generate new token (classic)").
+    - Or create an empty repo at https://github.com/new then re-run with -SkipRepoCreate
+
+  Fine-grained tokens (github_pat_...) often cannot use POST /user/repos — use a classic ghp_ token with **repo**.
 #>
 param(
     [Parameter(Mandatory = $true)]
@@ -20,7 +26,9 @@ param(
 
     [string] $GitHubUser = '',
 
-    [string] $Description = 'Django ecommerce — Render / Docker ready'
+    [string] $Description = 'Django ecommerce — Render / Docker ready',
+
+    [switch] $SkipRepoCreate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,9 +38,10 @@ if (-not $token) {
 }
 
 $headers = @{
-    Authorization = "Bearer $token"
-    Accept        = 'application/vnd.github+json'
-    'User-Agent'  = 'Create-OwnGithubRepo-ApiAndPush'
+    Authorization              = "Bearer $token"
+    Accept                     = 'application/vnd.github+json'
+    'User-Agent'               = 'Create-OwnGithubRepo-ApiAndPush'
+    'X-GitHub-Api-Version'     = '2022-11-28'
 }
 
 if (-not $GitHubUser) {
@@ -47,26 +56,47 @@ if (-not (Test-Path '.git')) {
     Write-Error "No .git folder in $root"
 }
 
-# Create repo (409 if already exists — then we only push)
-$body = @{
-    name        = $RepoName
-    description = $Description
-    private     = $false
-    has_issues  = $true
-} | ConvertTo-Json
+# Create repo via API (skip if you already created an empty repo on github.com/new)
+if (-not $SkipRepoCreate) {
+    $body = @{
+        name        = $RepoName
+        description = $Description
+        private     = $false
+        has_issues  = $true
+    } | ConvertTo-Json
 
-try {
-    Invoke-RestMethod -Uri 'https://api.github.com/user/repos' -Headers $headers -Method Post -Body $body -ContentType 'application/json' | Out-Null
-    Write-Host "Created https://github.com/$GitHubUser/$RepoName" -ForegroundColor Green
+    try {
+        Invoke-RestMethod -Uri 'https://api.github.com/user/repos' -Headers $headers -Method Post -Body $body -ContentType 'application/json' | Out-Null
+        Write-Host "Created https://github.com/$GitHubUser/$RepoName" -ForegroundColor Green
+    }
+    catch {
+        $resp = $_.Exception.Response
+        $code = if ($resp) { [int]$resp.StatusCode } else { 0 }
+        if ($code -eq 422) {
+            Write-Host "Repository already exists on GitHub; pushing latest commits." -ForegroundColor Yellow
+        }
+        elseif ($code -eq 404) {
+            Write-Host @"
+
+GitHub returned 404 on POST /user/repos. Common causes:
+  1) Classic PAT (ghp_...) is missing the **repo** scope — create a new classic token and check **repo**.
+  2) You are using a fine-grained token (github_pat_...) — it often cannot create user repos via this API; use a classic PAT instead.
+
+Workaround: open https://github.com/new , create public repo named exactly:
+  $RepoName
+(do not add README/license), then run this script again with:
+  -SkipRepoCreate
+
+"@ -ForegroundColor Yellow
+            throw
+        }
+        else {
+            throw
+        }
+    }
 }
-catch {
-    $resp = $_.Exception.Response
-    if ($resp -and [int]$resp.StatusCode -eq 422) {
-        Write-Host "Repository already exists on GitHub; pushing latest commits." -ForegroundColor Yellow
-    }
-    else {
-        throw
-    }
+else {
+    Write-Host "Skipping API create (-SkipRepoCreate). Repo must already exist: https://github.com/$GitHubUser/$RepoName" -ForegroundColor Yellow
 }
 
 # If current origin is not this repo yet, keep it as upstream (e.g. old amaanc986 fork).
