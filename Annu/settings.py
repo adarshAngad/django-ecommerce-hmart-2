@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 import dj_database_url
 
@@ -31,12 +33,17 @@ SECRET_KEY = os.environ.get(
     'django-insecure-l#2q(95krxuw2&xs^kyisi^trp3kw80$dtr_13nv43ew%=hq+z',
 )
 
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
+_is_render = bool(os.environ.get('RENDER'))
+_default_debug = 'False' if _is_render else 'True'
+DEBUG = os.environ.get('DEBUG', _default_debug).lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if _render_host:
     ALLOWED_HOSTS.append(_render_host)
+if _is_render:
+    # Correct absolute URLs and host validation behind Render's proxy
+    USE_X_FORWARDED_HOST = True
 _extra_hosts = os.environ.get('ALLOWED_HOSTS', '')
 if _extra_hosts:
     ALLOWED_HOSTS.extend(h.strip() for h in _extra_hosts.split(',') if h.strip())
@@ -100,7 +107,32 @@ WSGI_APPLICATION = 'Annu.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if os.environ.get('DATABASE_URL'):
+def _postgres_url_looks_valid(url: str) -> bool:
+    """Reject truncated DATABASE_URL values (common copy/paste mistake on Render)."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ('postgres', 'postgresql'):
+            return True
+        host = parsed.hostname or ''
+        # Real Render Postgres hosts look like dpg-xxxxx-a.REGION-postgres.render.com
+        if not host or '.' not in host:
+            return False
+        return True
+    except Exception:
+        return False
+
+
+_raw_db_url = (os.environ.get('DATABASE_URL') or '').strip()
+_use_postgres = bool(_raw_db_url) and _postgres_url_looks_valid(_raw_db_url)
+
+if _raw_db_url and not _use_postgres:
+    print(
+        'WARNING: DATABASE_URL is set but invalid or truncated (hostname must include a domain). '
+        'Falling back to SQLite. Fix DATABASE_URL in the Render dashboard to use Postgres.',
+        file=sys.stderr,
+    )
+
+if _use_postgres:
     DATABASES = {
         'default': dj_database_url.config(
             conn_max_age=600,

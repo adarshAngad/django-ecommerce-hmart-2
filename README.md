@@ -22,13 +22,33 @@ Online shop built with Django: catalog, cart, checkout, Razorpay payments, and a
 
 5. Open `http://127.0.0.1:8000/`
 
-## Deploy on Render
+## Deploy on Render (public URL)
 
-- **Build command:** `chmod +x build.sh && ./build.sh`
-- **Start command:** `gunicorn Annu.wsgi:application`
-- Set **`SECRET_KEY`**, **`DEBUG=False`**, and optional **`DATABASE_URL`** (Render PostgreSQL).
-- **PostgreSQL:** In the Render dashboard, copy the **Internal Database URL** in full (it must end with `.render.com` or similar). If you paste a truncated value, you will see errors like `could not translate host name "dpg-..."`.
-- If Postgres fails SSL on a non-Render host, set **`DATABASE_SSL_REQUIRE=False`**.
-- Optional: **`RAZORPAY_KEY_ID`**, **`RAZORPAY_KEY_SECRET`**, **`EMAIL_HOST_USER`**, **`EMAIL_HOST_PASSWORD`** for email.
+Your service URL will look like `https://YOUR-SERVICE.onrender.com`. Anyone with the link can open it after a successful deploy.
 
-SQLite works for quick tests; use Render Postgres for data that must survive redeploys.
+### Render settings
+
+| Field | Value |
+|--------|--------|
+| **Build command** | `chmod +x build.sh && ./build.sh` |
+| **Start command** | `gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT` |
+
+The **`$PORT`** binding is required so Render can route traffic from the internet to your app.
+
+### Environment variables
+
+| Variable | Required | Notes |
+|----------|------------|--------|
+| `SECRET_KEY` | Yes (production) | Long random string; Render can generate one. |
+| `DEBUG` | Recommended `False` | If unset on Render, this project defaults to **False** when the `RENDER` env is present. |
+| `DATABASE_URL` | Optional | Use the **full Internal Database URL** from your Render Postgres (hostname must contain a **dot**, e.g. `....oregon-postgres.render.com`). A truncated URL is ignored and the app falls back to **SQLite** so the site still starts. |
+| `DATABASE_SSL_REQUIRE` | Optional | Default `True` for Postgres. Set `False` only if your provider needs it. |
+
+Also set Razorpay / email variables if you use those features (see earlier sections).
+
+### After deploy
+
+- Open your **Render dashboard → your Web Service → URL** (or the custom domain you attach).
+- First request after idle may take ~30–60 seconds on the free tier (cold start).
+
+SQLite on a web service is fine for demos; use Render Postgres for data you need to keep across deploys.
