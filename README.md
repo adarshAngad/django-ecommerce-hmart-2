@@ -53,7 +53,9 @@ Also set Razorpay / email variables if you use those features (see earlier secti
 
 SQLite on a web service is fine for demos; use Render Postgres for data you need to keep across deploys.
 
-**Deploying to `https://pro-ac1o.onrender.com/`:** follow the checklist in `DEPLOY_RENDER_PRO_AC1O.md` (connect repo, fix `DATABASE_URL`, start command with `$PORT`, redeploy).
+**Deploying to `https://pro-ac1o.onrender.com/`:** follow `DEPLOY_RENDER_PRO_AC1O.md` (repo, `DATABASE_URL`, start command with `$PORT`, redeploy).
+
+**Same hostname vs new service:** read `RENDER_SAME_HOSTNAME.md`.
 
 **New GitHub repo + push:** install GitHub CLI (`winget install GitHub.cli`), run `gh auth login` once, then from the repo root:
 

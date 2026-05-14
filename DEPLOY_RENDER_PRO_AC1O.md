@@ -61,3 +61,7 @@ The app also uses `RENDER_EXTERNAL_HOSTNAME` when Render sets it; the above is a
 Open **https://pro-ac1o.onrender.com/** again. On the free tier, the first load after idle can take **30–60 seconds**.
 
 If it still fails, open **Logs** in Render and copy the **build** log and the **runtime** error (last 50 lines) for troubleshooting.
+
+## 6. “Separate service” but same `pro-ac1o.onrender.com`
+
+Render only allows **one** service to use a given `*.onrender.com` name. See **`RENDER_SAME_HOSTNAME.md`** for Option A (fix or replace the existing service) vs Option B (new URL).
