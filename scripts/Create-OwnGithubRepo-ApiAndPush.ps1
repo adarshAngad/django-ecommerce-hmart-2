@@ -76,19 +76,19 @@ if (-not $SkipRepoCreate) {
             Write-Host "Repository already exists on GitHub; pushing latest commits." -ForegroundColor Yellow
         }
         elseif ($code -eq 404) {
-            Write-Host @"
-
-GitHub returned 404 on POST /user/repos. Common causes:
-  1) Classic PAT (ghp_...) is missing the **repo** scope — create a new classic token and check **repo**.
-  2) You are using a fine-grained token (github_pat_...) — it often cannot create user repos via this API; use a classic PAT instead.
-
-Workaround: open https://github.com/new , create public repo named exactly:
-  $RepoName
-(do not add README/license), then run this script again with:
-  -SkipRepoCreate
-
-"@ -ForegroundColor Yellow
-            throw
+            Write-Host ''
+            Write-Host 'GitHub returned 404 on POST /user/repos. Common causes:' -ForegroundColor Yellow
+            Write-Host '  1) Classic PAT (ghp_...) is missing the **repo** scope - create a new classic token and check **repo**.' -ForegroundColor Yellow
+            Write-Host '  2) Fine-grained token (github_pat_...) often cannot create user repos - use a classic PAT with **repo**.' -ForegroundColor Yellow
+            Write-Host ''
+            Write-Host 'Workaround: open https://github.com/new' -ForegroundColor Cyan
+            Write-Host "  Create a PUBLIC repo named exactly: $RepoName" -ForegroundColor Cyan
+            Write-Host '  Do NOT add README, license, or .gitignore.' -ForegroundColor Cyan
+            Write-Host ''
+            Write-Host 'Then run (same folder, same token is OK):' -ForegroundColor Green
+            Write-Host "  & '.\scripts\Create-OwnGithubRepo-ApiAndPush.ps1' -RepoName '$RepoName' -SkipRepoCreate" -ForegroundColor Green
+            Write-Host ''
+            exit 1
         }
         else {
             throw
