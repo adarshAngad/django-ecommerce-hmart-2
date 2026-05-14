@@ -1,40 +1,80 @@
-HOW TO MAKE https://pro-ac1o.onrender.com/ OPEN (YOU MUST DO THESE IN THE BROWSER)
+HOW TO MAKE https://pro-ac1o.onrender.com/ SHOW THE REAL UI (DO IN ORDER)
 
-The site is still broken on Render because OLD code is deployed and DATABASE_URL is wrong.
-I cannot log into your Render or GitHub account from here. Do this in order:
+Right now Render still runs OLD code (see error: product.0 in index.html line 213) and a BROKEN Postgres URL.
+Your fixed project is on your PC but NOT on GitHub for that service — push was denied (403) because Windows Git is logged in as AdarshAg727 while the repo is amaanc986/ECOMMERCE-PROJECT-.
 
-STEP 1 - PUT FIXED CODE ON GITHUB
-  Open PowerShell:
-    cd c:\work\Adam\ECOMMERCE-PROJECT-
-    gh auth login
-    git push origin main
-  If push fails, fix GitHub login or use:
-    .\scripts\Create-GitHubRepoAndPush.ps1 -RepoName "hmart-fixed"
-  Then in Render (step 3) connect THAT new repo instead.
+================================================================================
+STEP 1 — GET YOUR LATEST CODE ONTO GITHUB (REQUIRED)
+================================================================================
+Open PowerShell in the project folder:
 
-STEP 2 - OPEN RENDER
-  https://dashboard.render.com
-  Click your Web Service that shows URL pro-ac1o.onrender.com
+  cd c:\work\Adam\ECOMMERCE-PROJECT-
 
-STEP 3 - CONNECT THIS REPO
-  Settings -> Build & Deploy -> Repository
-  Pick the GitHub repo and branch that has your LATEST code (with hero_slides fix).
-  Save.
+Pick ONE:
 
-STEP 4 - FIX DATABASE (IMPORTANT)
-  Environment -> Environment Variables
-  Find DATABASE_URL -> DELETE it (trash icon) OR replace with FULL Internal URL from your Render Postgres (host must contain a dot, like ....postgres.render.com)
-  Save.
+  A) Owner account (amaanc986) adds AdarshAg727 as collaborator on the repo, then:
+       git push origin main
 
-STEP 5 - START COMMAND
-  Settings -> Start Command:
-    gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT
-  Build Command:
-    chmod +x build.sh && ./build.sh
-  Save.
+  B) Use a Personal Access Token for an account that CAN push to that repo:
+       $env:GITHUB_TOKEN = 'ghp_PASTE_CLASSIC_PAT_WITH_repo_SCOPE'
+       .\scripts\Push-WithGitHubToken.ps1
 
-STEP 6 - DEPLOY
-  Manual Deploy -> Clear build cache & deploy (or Deploy latest commit)
-  Wait until build is green. Open https://pro-ac1o.onrender.com/ again (wait up to 60 sec on free tier).
+  C) Point git at YOUR repo and push there, then in Render (Step 3) connect YOUR repo instead:
+       git remote set-url origin https://github.com/YOUR_USER/YOUR_REPO.git
+       git push -u origin main
 
-If you do only step 4 and not step 1, the home page can STILL crash (old template). You need NEW code from GitHub on Render.
+Until Step 1 succeeds, Render will NEVER show the new UI.
+
+================================================================================
+STEP 2 — RENDER DASHBOARD
+================================================================================
+Open: https://dashboard.render.com
+Open the Web Service whose URL is https://pro-ac1o.onrender.com/
+
+================================================================================
+STEP 3 — REPO + BRANCH
+================================================================================
+Settings -> Build & Deploy
+  Repository: the repo you pushed to in Step 1
+  Branch: main
+Save.
+
+================================================================================
+STEP 4 — DATABASE (FIX THE CRASH)
+================================================================================
+Environment -> Environment Variables
+
+  EITHER delete DATABASE_URL entirely (app will use SQLite and the site will load), OR
+  paste the FULL "Internal Database URL" from your Render PostgreSQL
+  (hostname MUST look like something.postgres.render.com — NOT ending at ...-a with no domain).
+
+Optional but safe if you see DisallowedHost:
+  ALLOWED_HOSTS = pro-ac1o.onrender.com
+  CSRF_TRUSTED_ORIGINS = https://pro-ac1o.onrender.com
+
+Save.
+
+================================================================================
+STEP 5 — BUILD + START
+================================================================================
+Build Command:
+  chmod +x build.sh && ./build.sh
+
+Start Command:
+  gunicorn Annu.wsgi:application --bind 0.0.0.0:$PORT
+
+Save.
+
+================================================================================
+STEP 6 — DEPLOY
+================================================================================
+Manual Deploy -> Clear build cache & deploy (or Deploy latest commit).
+Wait until the deploy is Live. First open after idle can take ~30–60 seconds (free tier).
+
+Then click: https://pro-ac1o.onrender.com/
+
+================================================================================
+AFTER IT WORKS
+================================================================================
+Create admin if needed (Render Shell):
+  python manage.py createsuperuser
